@@ -1,4 +1,3 @@
-
 import os
 import time, sys, os, re
 from neopixel import * # See https://learn.adafruit.com/neopixels-on-raspberry-pi/software
@@ -15,7 +14,7 @@ LED_COUNT      = 496      # Number of LED pixels.
 LED_PIN        = 18      # GPIO pin connected to the pixels (must support PWM!).
 LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA        = 5       # DMA channel to use for generating signal (try 5)
-LED_BRIGHTNESS = 10   # Set to 0 for darkest and 255 for brightest
+LED_BRIGHTNESS = 50   # Set to 0 for darkest and 255 for brightest
 LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
 
 # Speed of movement, in seconds (recommend 0.1-0.3)
@@ -37,10 +36,6 @@ for data_file in sorted(os.listdir(folder_path)):
     images.append(data_file)
     i = sorted(images, key=natural_key)
 
-for data_file in sorted(os.listdir(folder_path2)):
-    images2.append(data_file)
-    i2 = sorted(images2, key=natural_key)
-
 myMatrix=[495,494,493,492,491,490,489,488,487,486,485,484,483,482,481,480,479,478,477,476,475,474,473,472,471,470,469,468,467,466,465,
           434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,458,459,460,461,462,463,464,
           433,432,431,430,429,428,427,426,425,424,423,422,421,420,419,418,417,416,415,414,413,412,411,410,409,408,407,406,405,404,403,
@@ -58,7 +53,7 @@ myMatrix=[495,494,493,492,491,490,489,488,487,486,485,484,483,482,481,480,479,47
            61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31,
             0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
 
-#myMatrix.reverse()
+myMatrix.reverse()
 #print (myMatrix)
 
 # Feel free to write a fancy set of loops to populate myMatrix
@@ -222,9 +217,11 @@ def fade():
 
 def getpositionfromxy(x, y):
     position = (y * MATRIX_WIDTH) + x
+    #position = (y * MATRIX_WIDTH) + x
     return position
 
 def getxyfromposition(position):
+    print('getxypos',position)
     completerows = position // MATRIX_WIDTH
     remainder = position % MATRIX_WIDTH
     y = completerows
@@ -232,16 +229,18 @@ def getxyfromposition(position):
     return (x,y)
 
 def flipposition(unflipped):
+    print('unf:', unflipped)
+    print(type(unflipped))
     #First, get the row, 0 is first row
     row = getxyfromposition(unflipped)[1]
     column = getxyfromposition(unflipped)[0]
-    if row % 2 == 0:
+    if row !=0 and row % 2 == 0:
         # even row, no need to do anything
         return unflipped
     else:
         # odd row.  numbers run down from high to low in this row, so subtract the x position from the max value.
         maxValueInRow = MATRIX_WIDTH * (row + 1)
-        return maxValueInRow - column
+        return maxValueInRow - column -1
             
 def updateball(ballInput):
     # First check for side edge bounce, reverse the x velocity if we're at the edge
@@ -266,13 +265,13 @@ def updateball(ballInput):
     return ballInput
 
 def drawBall(position):
-    #print (position)
-    #print (type(position))
-    pos = myMatrix.index(int(position))
-    strip.setPixelColor(pos,colour(0,255,0))
+    print (position)
+    print (type(position))
+    #pos = myMatrix.index(int(position))
+    strip.setPixelColor(position,colour(0,255,0))
     strip.show()
     time.sleep(0.05)
-    strip.setPixelColor(pos,colour(0,0,0))
+    strip.setPixelColor(position,colour(0,0,0))
     strip.show()
     # do something here
     return True
@@ -287,25 +286,27 @@ initLeds(strip)
 
 # Ball object...
 ball = {
-    'xpos': 15.0,
-    'ypos': 16.0,
-    'xvelocity': 0.0,
+    'xpos': 1,
+    'ypos': 15.0,
+    'xvelocity': 1.1,
     'yvelocity': 0.0
 }
 
 #Main logic loop - draw ball, wait a while, update balls position, repeat...
-##while True:
-##    #Draw ball here - round the x and y positions since they are decimal/floats
-##    LEDposition = getpositionfromxy(round(ball['xpos']),round(ball['ypos']))
-##    drawBall(LEDposition)
-##    ball = updateball(ball)
-i=0
 while True:
-   drawBall(i%496)
-   i+=1
+    #Draw ball here - round the x and y positions since they are decimal/floats
+    LEDposition = getpositionfromxy(round(ball['xpos']),round(ball['ypos']))
+    flippedLED = (flipposition(getpositionfromxy(round(ball['xpos']),round(ball['ypos']))))
+    #flippedLED = flipposition(LEDposition)
+    drawBall(flippedLED)
+    ball = updateball(ball)
+i=0
 
-
-
+##drawBall(495)
+##
+##d = getpositionfromxy(4,4)
+##
+##print(d)
 
 
 #scroll()
@@ -318,6 +319,7 @@ while True:
 #fade()
 #allonecolour(strip,colour(0,0,0))
 ##print ('Done')
+
 
 
 
